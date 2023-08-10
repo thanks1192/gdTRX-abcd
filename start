@@ -1,0 +1,43 @@
+#!/bin/sh
+
+SCRIPT=$(readlink -f "$0")
+SCRIPT_DIR=$(dirname "$SCRIPT")
+cd "$SCRIPT_DIR"
+mysqlv=$(mysql --version)
+redisv=$(redis-cli -v)
+dockerv=$(docker -v)
+current_time=$(date +"%Y-%m-%d %H:%M:%S") 
+
+if [[ $mysqlv != *"5.7"* ]]; then  
+    echo -e "$current_time | \033[41;33m未安装Mysql,请到软件商店》安装MYSQL5.7\033[0m "
+    exit
+fi 
+
+if [[ $redisv != *"redis-cli"* ]]; then 
+    echo -e "$current_time | \033[41;33m未安装Redis，请到软件商店》安装redis\033[0m "
+    exit
+fi 
+
+if [[ $dockerv != *"version"* ]]; then 
+    echo -e "\n$current_time | \033[41;33m系统未安装Docker环境,请点击宝塔面板菜单》Docker 提示未安装 - 点击安装 \033[0m"
+    echo -e "$current_time | \033[0;34m如果菜单栏没有看到Docker (新版宝塔面板菜单默认隐藏了Docker)\033[0m "
+    echo -e "$current_time | \033[0;34m请点击：面板设置 > 面板菜单栏隐藏 - 设置菜单栏显示Docker\033[0m\n"
+    exit
+fi 
+
+
+docker=$(docker ps) 
+if [[ $docker == *"telegbot/php8"* ]]; then   
+    echo -e "\n$current_time | \033[1;31m发现项目正在运行,停止项目... \033[0m"  
+    docker-compose stop 
+    echo -e "$current_time | \033[1;31m项目已停止... \033[0m"  
+fi  
+
+ 
+if [ "$1" = "-d" ]; then
+    echo -e "$current_time | \033[1;32m开始启动项目(启动模式：后台模式 - 面板不输出任何消息日志)...\033[0m "  
+    docker-compose up -d  
+else  
+    echo -e "$current_time | \033[1;32m开始启动项目(启动模式：调试模式 - 调试查看机器人是否有错误消息日志)...\033[0m "  
+    docker-compose up 
+fi 
